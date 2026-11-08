@@ -1,0 +1,761 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NBA Hub</title>
+<style>
+:root{
+  --bg:#0a0b0e; --panel:#14161b; --raised:#1c1f26; --line:#292d36;
+  --accent:#ff7338; --accent-bg:#322018; --accent-line:#68402e;
+  --text:#f5f6fa; --soft:#d1d4dd; --muted:#999fac; --dim:#6f7787;
+  --live:#ff525d; --ok:#58c595; --r:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font:14px/1.4 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:0}
+a{color:inherit;text-decoration:none}
+svg.i{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+/* layout */
+.top{position:sticky;top:0;z-index:30;height:80px;display:flex;align-items:center;gap:40px;padding:0 30px;background:var(--bg);border-bottom:1px solid var(--line)}
+.logo{display:flex;align-items:center;gap:8px;font-weight:800;font-size:22px;width:178px;cursor:pointer}
+.logo b{width:29px;height:34px;border-radius:5px;background:var(--accent);display:grid;place-items:center;color:#0a0b0e}
+.logo em{font-style:normal;color:var(--accent)}
+.search{display:flex;align-items:center;gap:10px;height:38px;width:440px;max-width:100%;padding:0 13px;background:var(--panel);border:1px solid var(--line);border-radius:8px;color:var(--dim);font-size:12px;cursor:text;text-align:left}
+.search kbd{margin-left:auto;font:inherit;font-size:10px}
+.acc{margin-left:auto;display:flex;align-items:center;gap:22px}
+.badge{display:inline-flex;align-items:center;padding:4px 8px;border-radius:4px;background:var(--raised);color:var(--muted);font-size:10px;font-weight:700;letter-spacing:.02em;white-space:nowrap}
+.badge.live{color:var(--live)} .badge.acc2{background:var(--accent-bg);color:var(--accent)} .badge.ok{color:var(--ok)}
+.avatar{width:30px;height:30px;border-radius:99px;background:var(--raised);display:grid;place-items:center;font-size:11px;font-weight:700}
+.shell{display:flex;min-height:calc(100vh - 80px)}
+.side{width:208px;flex:none;border-right:1px solid var(--line);padding:30px 16px;display:flex;flex-direction:column;gap:8px;position:sticky;top:80px;height:calc(100vh - 80px);overflow:auto}
+.nav{display:flex;align-items:center;gap:12px;height:43px;padding:0 12px;border-radius:8px;color:var(--muted);font-weight:500;font-size:13px;width:100%;text-align:left}
+.nav:hover{background:var(--panel);color:var(--text)}
+.nav.on{background:var(--accent-bg);color:var(--accent);font-weight:700}
+.nav small{font-size:10px;color:var(--dim);margin-left:2px}
+.lab{background:var(--panel);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.lab h4{font-size:14px} .lab p{font-size:11px;color:var(--muted)} .lab a{font-size:11px;color:var(--accent);cursor:pointer}
+.tiny{font-size:10px;color:var(--dim)}
+main{flex:1;min-width:0;padding:32px;display:flex;flex-direction:column;gap:32px}
+.eyebrow{color:var(--accent);font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+h1{font-size:36px;line-height:1.15;font-weight:800}
+h2{font-size:21px;font-weight:700}
+h3{font-size:17px;font-weight:700}
+.sub{color:var(--muted);font-size:14px}
+.sec{display:flex;flex-direction:column;gap:16px}
+.sec-h{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
+.sec-h a,.link{color:var(--accent);font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap}
+.grid{display:grid;gap:12px}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))} .g3{grid-template-columns:repeat(3,minmax(0,1fr))} .g2{grid-template-columns:repeat(2,minmax(0,1fr))} .g5{grid-template-columns:repeat(5,minmax(0,1fr))}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:12px}
+.card.hot{border-color:var(--accent-line)}
+.card.click{cursor:pointer;transition:.15s} .card.click:hover{border-color:var(--accent-line);transform:translateY(-1px)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border-radius:8px;background:var(--raised);border:1px solid var(--line);font-weight:700;font-size:13px;white-space:nowrap}
+.btn:hover{border-color:var(--accent-line)}
+.btn.p{background:var(--accent);border-color:var(--accent);color:#0a0b0e}
+.btn.s{padding:6px 10px;font-size:11px}
+.btn svg.i{width:16px;height:16px}
+.chip{padding:7px 12px;border-radius:99px;background:var(--panel);border:1px solid var(--line);font-size:12px;font-weight:600;color:var(--muted);white-space:nowrap}
+.chip.on{background:var(--accent-bg);border-color:var(--accent-line);color:var(--accent)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+select.chip{appearance:none;padding-right:12px;background:var(--panel)}
+.hero{position:relative;height:350px;border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;padding:20px;
+  background:radial-gradient(900px 300px at 85% 30%,rgba(253,185,39,.28),transparent 60%),radial-gradient(700px 300px at 100% 80%,rgba(0,122,51,.35),transparent 60%),linear-gradient(120deg,#17120a,#0a0b0e 70%)}
+.hero h1{font-size:47px;max-width:570px}
+.hero .vs{position:absolute;right:40px;top:30px;font-size:150px;font-weight:800;opacity:.07;letter-spacing:-.05em}
+.hero>div{display:flex;flex-direction:column;gap:14px;position:relative;max-width:620px}
+.hero .row{display:flex;gap:10px;flex-wrap:wrap}
+.tabs{display:flex;gap:6px;overflow:auto;padding-bottom:2px}
+.day{min-width:62px;padding:8px 6px;border-radius:10px;background:var(--panel);border:1px solid var(--line);text-align:center;font-size:10px;color:var(--muted);font-weight:600}
+.day b{display:block;font-size:17px;color:var(--text)}
+.day.on{background:var(--accent-bg);border-color:var(--accent-line);color:var(--accent)} .day.on b{color:var(--accent)}
+.tm{display:flex;gap:10px;align-items:center;min-width:0}
+.logoT{width:34px;height:34px;border-radius:99px;display:grid;place-items:center;font-size:10px;font-weight:800;color:#fff;flex:none;border:2px solid rgba(255,255,255,.12)}
+.logoT.sm{width:26px;height:26px;font-size:8px}
+.mrow{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.score{font-size:21px;font-weight:800}
+.dim{color:var(--muted)} .sm{font-size:11px}
+.vid{display:flex;flex-direction:column;gap:11px}
+.thumb{height:190px;border-radius:var(--r);position:relative;display:flex;flex-direction:column;justify-content:space-between;padding:16px;overflow:hidden;cursor:pointer}
+.thumb:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,11,14,0) 10%,rgba(10,11,14,.9));pointer-events:none}
+.thumb>*{position:relative;z-index:1}
+.play{width:34px;height:34px;border-radius:99px;background:rgba(255,255,255,.15);display:grid;place-items:center;backdrop-filter:blur(4px)}
+.thumb .t{display:flex;justify-content:space-between;align-items:flex-start}
+.thumb .b{display:flex;justify-content:space-between;align-items:flex-end}
+.vinfo{display:flex;gap:10px;align-items:flex-start}
+.vinfo>div{flex:1;min-width:0}
+.vinfo b{display:block;font-size:14px}
+.bm{color:var(--dim);padding:2px} .bm.on{color:var(--accent)} .bm.on svg{fill:var(--accent)}
+.pcard .ph{height:190px;border-radius:var(--r);display:flex;justify-content:space-between;align-items:flex-start;padding:16px;position:relative;overflow:hidden}
+.pcard .ph .num{position:absolute;left:14px;bottom:-14px;font-size:110px;font-weight:800;opacity:.16;line-height:1}
+.pcard{display:flex;flex-direction:column;gap:12px;cursor:pointer}
+.tag{color:var(--accent);font-size:10px;font-weight:600}
+.kv{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.kv div{background:var(--raised);border-radius:8px;padding:10px;text-align:center}
+.kv b{display:block;font-size:18px} .kv span{font-size:10px;color:var(--muted)}
+ul.l{list-style:none;display:flex;flex-direction:column;gap:7px}
+ul.l li{display:flex;gap:8px;font-size:13px;color:var(--soft)}
+ul.l li:before{content:"";width:6px;height:6px;border-radius:99px;background:var(--accent);margin-top:7px;flex:none}
+ul.l.bad li:before{background:var(--live)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{color:var(--dim);font-weight:600;text-align:right;padding:6px 8px;font-size:10px;letter-spacing:.04em}
+td{padding:8px;text-align:right;border-top:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left}
+td:first-child{font-weight:600}
+.tw{overflow:auto}
+.crumb{color:var(--muted);font-size:12px;cursor:pointer;display:inline-flex;gap:6px;align-items:center}
+textarea,.inp{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;font-size:13px;resize:vertical;min-height:70px}
+textarea:focus,.inp:focus{outline:1px solid var(--accent-line)}
+.inp{min-height:0;height:40px}
+.opt{display:flex;gap:12px;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px}
+.opt>div{flex:1;min-width:0} .opt b{display:block;font-size:13px}
+.court{background:#0f1218;border:1px solid var(--line);border-radius:10px;width:100%;height:auto}
+.empty{border:1px dashed var(--line);border-radius:var(--r);padding:28px;text-align:center;color:var(--muted);font-size:13px}
+.split{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}
+.timeline{display:flex;flex-direction:column;gap:0}
+.timeline div{display:flex;gap:12px;padding:10px 0;border-top:1px solid var(--line);font-size:13px;color:var(--soft)}
+.timeline div:first-child{border-top:0}
+.timeline b{color:var(--accent);min-width:44px;font-size:12px}
+.summary{background:linear-gradient(135deg,var(--accent-bg),var(--panel));border:1px solid var(--accent-line)}
+.footer{border-top:1px solid var(--line);padding:16px 0 10px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;color:var(--dim);font-size:10px}
+.note{display:flex;gap:6px;align-items:center;color:var(--dim);font-size:10px}
+/* search overlay */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:60;display:none;padding:80px 16px;backdrop-filter:blur(3px)}
+.ov.on{display:block}
+.ovb{max-width:620px;margin:0 auto;background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.ovb .inp{border:0;border-bottom:1px solid var(--line);border-radius:0;height:52px;background:var(--panel);font-size:15px}
+.res{max-height:60vh;overflow:auto}
+.res button{display:flex;gap:12px;align-items:center;width:100%;padding:11px 16px;text-align:left;font-size:13px}
+.res button:hover,.res button.sel{background:var(--raised)}
+.res small{margin-left:auto;color:var(--dim);font-size:10px;text-transform:uppercase;font-weight:700}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--raised);border:1px solid var(--accent-line);padding:10px 16px;border-radius:10px;font-size:12px;z-index:70;opacity:0;pointer-events:none;transition:.2s}
+.toast.on{opacity:1}
+.bnav{display:none}
+@media(max-width:1100px){.g4{grid-template-columns:repeat(2,minmax(0,1fr))}.g5{grid-template-columns:repeat(3,minmax(0,1fr))}.split{grid-template-columns:1fr}.hero h1{font-size:38px}}
+@media(max-width:860px){
+  .side{display:none}
+  .top{height:64px;gap:14px;padding:0 20px}
+  .logo{width:auto;font-size:20px} .search{width:auto;flex:1;display:none} .acc{gap:14px}
+  .badge.season{display:none}
+  main{padding:20px 20px 96px;gap:26px}
+  h1{font-size:28px} .hero{height:300px} .hero h1{font-size:30px} .hero .vs{font-size:90px}
+  .g3,.g2{grid-template-columns:1fr} .g4{grid-template-columns:1fr} .g5{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .bnav{display:flex;position:fixed;bottom:0;left:0;right:0;z-index:40;background:rgba(10,11,14,.96);border-top:1px solid var(--line);overflow-x:auto;padding:6px 6px calc(6px + env(safe-area-inset-bottom));backdrop-filter:blur(8px)}
+  .bnav button{flex:1;min-width:64px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;color:var(--muted);padding:6px 4px;border-radius:8px;font-weight:600}
+  .bnav button.on{color:var(--accent)}
+  .toast{bottom:90px}
+}
+@media(min-width:861px){.msearch{display:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="logo" data-go="home"><b id="lg"></b><span>NBA <em>Hub</em></span></div>
+  <button class="search" data-act="search"><span id="si"></span>Rechercher un joueur, une équipe, un move…<kbd>Ctrl K</kbd></button>
+  <div class="acc">
+    <span class="badge season">MODE HORS LIGNE</span>
+    <button class="msearch" data-act="search" id="si2" aria-label="Recherche"></button>
+    <button data-act="notif" id="bell" aria-label="Rappels"></button>
+    <div class="avatar" id="av">PA</div>
+  </div>
+</header>
+<div class="shell">
+  <nav class="side" id="side"></nav>
+  <main id="app"></main>
+</div>
+<nav class="bnav" id="bnav"></nav>
+<div class="ov" id="ov"><div class="ovb"><input class="inp" id="q" placeholder="Joueur, équipe, match, move, tactique…" autocomplete="off"><div class="res" id="res"></div></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =====================================================================
+   NBA HUB — fichier unique
+   1) CONFIG & SOURCES DE DONNÉES (API branchables)
+   2) DATA (équipes, joueurs, moves, tactiques, vidéos) — à éditer ici
+   3) Logique (état, rendu, recherche, calendrier)
+   ===================================================================== */
+
+/* ---------- 1. DONNÉES LOCALES ----------
+   Aucun appel réseau, aucune clé API. La page et ses données intégrées fonctionnent hors ligne.
+   Pour publier un planning local, ajoute des objets dans GAMES au format documenté sous le tableau.
+   Les liens vidéo ne s'ouvrent que si tu cliques dessus et nécessitent alors Internet. */
+const CONFIG = {TZ:'Europe/Paris'};
+
+/* ---------- 2. DATA ---------- */
+const T = (abbr,name,conf,color,div) => ({abbr,name,conf,color,div});
+const TEAMS = [
+  T('ATL','Atlanta Hawks','E','#e03a3e'),T('BOS','Boston Celtics','E','#1fa463'),T('BKN','Brooklyn Nets','E','#8a8f98'),
+  T('CHA','Charlotte Hornets','E','#1d8fb4'),T('CHI','Chicago Bulls','E','#ce1141'),T('CLE','Cleveland Cavaliers','E','#9c2b4a'),
+  T('DAL','Dallas Mavericks','O','#2f7fd0'),T('DEN','Denver Nuggets','O','#d9a431'),T('DET','Detroit Pistons','E','#c8102e'),
+  T('GSW','Golden State Warriors','O','#2b62d9'),T('HOU','Houston Rockets','O','#ce1141'),T('IND','Indiana Pacers','E','#d9a431'),
+  T('LAC','LA Clippers','O','#c8102e'),T('LAL','Los Angeles Lakers','O','#9a6fd1'),T('MEM','Memphis Grizzlies','O','#5d76a9'),
+  T('MIA','Miami Heat','E','#c8102e'),T('MIL','Milwaukee Bucks','E','#00712d'),T('MIN','Minnesota Timberwolves','O','#2c8f78'),
+  T('NOP','New Orleans Pelicans','O','#85714d'),T('NYK','New York Knicks','E','#f58426'),T('OKC','Oklahoma City Thunder','O','#2a8be0'),
+  T('ORL','Orlando Magic','E','#0077c0'),T('PHI','Philadelphia 76ers','E','#2a6ed1'),T('PHX','Phoenix Suns','O','#e56020'),
+  T('POR','Portland Trail Blazers','O','#d63a3e'),T('SAC','Sacramento Kings','O','#7a5fb5'),T('SAS','San Antonio Spurs','O','#8b929c'),
+  T('TOR','Toronto Raptors','E','#d6264b'),T('UTA','Utah Jazz','O','#4b6ab5'),T('WAS','Washington Wizards','E','#d2354a')
+];
+const TM = Object.fromEntries(TEAMS.map(t=>[t.abbr,t]));
+
+/* Sources gratuites uniquement. Les liens externes s'ouvrent à la demande. */
+const WATCH = {
+  youtube:{name:'YouTube NBA officiel',type:'Gratuit',note:'Highlights, Top 10 et résumés publiés gratuitement par la NBA.',url:'https://www.youtube.com/@NBA'},
+  nbaapp:{name:'NBA.com / NBA App',type:'Gratuit',note:'Scores, articles, box scores et sélection de vidéos gratuites. Les matchs complets peuvent être payants : ils ne sont pas proposés ici.',url:'https://www.nba.com/games'},
+  teamYoutube:{name:'Chaînes officielles des équipes',type:'Gratuit',note:'Rechercher les résumés et conférences de presse sur les chaînes YouTube des franchises.',url:'https://www.youtube.com/results?search_query=NBA+team+official+highlights'},
+  fans:{name:'Vidéos de fans sur YouTube',type:'Gratuit',note:'Analyses et compilations communautaires; vérifier les droits et la chaîne qui publie.',url:'https://www.youtube.com/results?search_query=NBA+highlights+analysis'},
+  podcasts:{name:'Podcasts NBA gratuits',type:'Gratuit',note:'Émissions et analyses audio disponibles gratuitement sur les plateformes de podcasts.',url:'https://www.youtube.com/results?search_query=NBA+podcast'},
+  reddit:{name:'r/nba',type:'Gratuit',note:'Discussions, actualités et fils de suivi en direct par la communauté.',url:'https://www.reddit.com/r/nba/'},
+  x:{name:'NBA sur X',type:'Gratuit',note:'Suivre les comptes officiels NBA et des équipes pour les annonces et clips.',url:'https://x.com/NBA'},
+  radio:{name:'Radios et commentaires gratuits',type:'Gratuit',note:'Recherche de commentaires et radios NBA gratuits; disponibilité et droits variables selon le marché.',url:'https://www.youtube.com/results?search_query=NBA+radio+free+live+commentary'}
+};
+
+/* Planning local: pas de match ou de score inventé. Exemple d'objet à copier puis compléter :
+   {date:'2026-11-08',hour:'01:30',home:'BOS',away:'NYK',homeScore:null,awayScore:null,
+    status:'up',stake:'Match de saison régulière',source:'Programme officiel consulté le 2026-11-07'}
+   Pour un match terminé, renseigne les scores; n'indique "live" qu'avec un score/clock vérifié.
+   Les effectifs et standings seront complétés dans les blocs de données suivants. */
+const GAMES = [];
+
+/* Vidéos : liens de RECHERCHE officiels YouTube (toujours valides). Remplace par un ID précis : {id:'xxxx'} -> https://youtu.be/xxxx */
+const yt = q => 'https://www.youtube.com/results?search_query=' + encodeURIComponent(q);
+const NBA_YT = q => yt('NBA ' + q);
+const V = (id,title,sub,len,hue,q,tag) => ({id,title,sub,len,hue,url:NBA_YT(q),tag});
+const VIDEOS = [
+  V('v1','Lakers – Celtics : une rivalité, un show','LAL vs BOS · Résumé du match','09:42','#9a6fd1','Lakers Celtics full game highlights','game'),
+  V('v2','Stephen Curry, le tir comme une science','Golden State · 3 points','04:18','#2b62d9','Stephen Curry best shooting highlights','player'),
+  V('v3','Anthony Edwards décolle au-dessus du cercle','Minnesota · Top plays','02:36','#2c8f78','Anthony Edwards top plays dunks','player'),
+  V('v4','Top 10 de la nuit','Toute la ligue · Top 10','03:10','#ff7338','Top 10 plays of the night','top'),
+  V('v5','Victor Wembanyama : le chaos défensif','San Antonio · Contres','05:02','#8b929c','Victor Wembanyama blocks defense highlights','player'),
+  V('v6','Shai Gilgeous-Alexander, maître du mid-range','Oklahoma City · Isolation','06:21','#2a8be0','Shai Gilgeous-Alexander mid range highlights','player'),
+  V('v7','Nikola Jokić, le cerveau du jeu','Denver · Passes','07:15','#d9a431','Nikola Jokic passing highlights','player'),
+  V('v8','Kyrie Irving, la clinique du dribble','Dallas · Handle','04:40','#2f7fd0','Kyrie Irving handles highlights','player')
+];
+
+/* Joueurs — fiches d'étude intégrées. Les statistiques non datées sont indicatives, pas du direct. */
+const CATS = {
+  pg:'Meneurs / créateurs',sh:'Shooters',wing:'Ailiers polyvalents',pf:'Ailiers forts / finishers',c:'Pivots / défenseurs intérieurs',
+  def:'Défenseurs élites',dribble:'Étudier : dribble',shoot:'Étudier : shoot',post:'Étudier : post-up',read:'Étudier : lecture de jeu',trans:'Étudier : transition'
+};
+const P = (id,name,team,pos,num,cats,focus,style,pros,cons,stats,study,tips,q) => ({id,name,team,pos,num,cats,focus,style,pros,cons,stats,study,tips,q:q||name});
+const PLAYERS = [
+  P('curry','Stephen Curry','GSW','Meneur',30,['pg','sh','shoot'],'Tir & déplacements','Tireur le plus influent de l\'histoire : gravité énorme, tir en mouvement, relâchement ultra rapide.',
+    ['Tir en sortie de écran / off-ball','Handle serré pour créer l\'espace','Lecture des fermetures de défense'],['Défense 1 contre 1 limitée','Contact en finition'],{PTS:'~25',REB:'~5',AST:'~6','3P%':'~40%'},
+    ['Courses off-ball autour des écrans (« relocation »)','Step-back et pull-up à 8-9 m','Pick & roll avec drag screen en transition'],
+    ['Travaille le tir en 1-2 temps pieds ouverts vers le panier','Tire toujours après un faux départ (jab/shake) pour décaler le défenseur','Garde le coude dans l\'axe : trajectoire haute et douce'],'Stephen Curry highlights'),
+  P('kyrie','Kyrie Irving','DAL','Meneur',11,['pg','dribble'],'Handle & finition','Dribbleur le plus fluide de la ligue : changements de rythme, finitions acrobatiques des deux mains.',
+    ['Handle serré à deux mains','Finitions autour du cercle (reverse, floater)','Tir en mouvement'],['Défense inconstante','Beaucoup d\'isolations'],{PTS:'~24',REB:'~5',AST:'~5','3P%':'~40%'},
+    ['Combinaisons crossover–between the legs–spin','Finitions contre contacts avec angles bas','Mid-range off dribble'],
+    ['Dribble bas, épaules devant le ballon','Pratique le « ball tap » en changeant de rythme plutôt que juste de main','Finis avec la main loin du défenseur (reverse layup)'],'Kyrie Irving handle highlights'),
+  P('wemby','Victor Wembanyama','SAS','Pivot',1,['c','def','shoot'],'Défense & timing','Pivot-licorne de 2,24 m : protection du cercle, mobilité d\'arrière, tir lointain.',
+    ['Contres et dissuasion','Mobilité en défense de pick & roll','Tir à 3 points et fadeaway'],['Gestion du physique','Régularité à la finition en contact'],{PTS:'~25',REB:'~11',AST:'~4',BLK:'~3.5'},
+    ['Verticalité et timing du contre','Drop coverage et récupération','Fadeaway au poste médian'],
+    ['Reste vertical : bras tendus, sans sauter à l\'aveugle','Lis les épaules de l\'attaquant avant le jump','Pratique le « show & recover » sur les écrans'],'Victor Wembanyama highlights'),
+  P('tatum','Jayson Tatum','BOS','Ailier',0,['wing','post','dribble'],'Footwork & scoring','Ailier complet à trois niveaux : isolation, post-up léger, step-back.',
+    ['Footwork en isolation','Step-back à 3 points','Rebond et défense polyvalente'],['Choix de tirs parfois forcés'],{PTS:'~27',REB:'~8',AST:'~5','3P%':'~37%'},
+    ['Jab step puis tir en retrait','Post-up épaule vers le panier','Drive eurostep'],
+    ['Utilise tes appuis : un pied de pivot, ne le bouge jamais en feintant','Alterne attaque directe et recul pour garder le défenseur indécis'],'Jayson Tatum highlights'),
+  P('jokic','Nikola Jokić','DEN','Pivot',15,['c','read','post'],'Lecture de jeu','Pivot passeur : lit le jeu avec un temps d\'avance, joue autour du poste et du haut de raquette.',
+    ['Passes dans les fenêtres minuscules','Jeu au poste et touche de balle','Rebond offensif'],['Mobilité défensive limitée'],{PTS:'~28',REB:'~13',AST:'~10','3P%':'~38%'},
+    ['Hand-off & DHO au sommet','Passes après un faux tir (pump)','Touch shots (sky-hook, floater)'],
+    ['Fixe un regard puis passe de l\'autre côté','Joue avec le tempo plutôt qu\'avec la vitesse','Cherche le joueur libre avant de réfléchir à marquer'],'Nikola Jokic highlights'),
+  P('sga','Shai Gilgeous-Alexander','OKC','Meneur',2,['pg','dribble','read'],'Isolation & mid-range','Scoreur ultra efficace : changements de rythme, mid-range, lancers francs provoqués.',
+    ['Changements de rythme (hesitation)','Mid-range jusqu\'à 4 m','Défense sur le ballon'],['Peu de tirs à 3 pts spectaculaires'],{PTS:'~31',REB:'~5',AST:'~6',STL:'~2'},
+    ['Hesitation + pull-up','Drives en ligne droite sous contrôle','Lancers francs provoqués par le contact'],
+    ['Apprends à décélérer : stoppe, hesitation, repars','Attire le défenseur sur ta hanche, tire dans la fenêtre dégagée'],'Shai Gilgeous-Alexander highlights'),
+  P('ant','Anthony Edwards','MIN','Arrière',5,['wing','trans','dribble'],'Explosivité & transition','Athlète explosif : attaque du cercle, tirs difficiles, impact en transition.',
+    ['Explosivité en transition','Tir off dribble','Énergie défensive'],['Choix de tirs','Régularité'],{PTS:'~27',REB:'~6',AST:'~5','3P%':'~37%'},
+    ['Pull-up 3 en transition','Dunks sur contre-attaque','Pas d\'élan « gather »'],
+    ['Cours à fond puis ralentis juste avant la prise de décision','Arrive sous contrôle dans la raquette : pas tête baissée'],'Anthony Edwards highlights'),
+  P('giannis','Giannis Antetokounmpo','MIL','Ailier fort',34,['pf','trans','post'],'Finition & transition','Force athlétique : « Euro step » de légende, transition dévastatrice, finition au cercle.',
+    ['Envergure et pas immense','Transition en un dribble','Défense d\'aide'],['Tir extérieur','Lancers francs'],{PTS:'~30',REB:'~12',AST:'~6',FG:'~60%'},
+    ['Eurostep sous 2 temps','Rebond-dribble-dunk','Spin move dos au panier'],
+    ['Cherche le premier pas long et le second pas court','Protège la balle avec ton bras libre'],'Giannis Antetokounmpo highlights'),
+  P('lebron','LeBron James','LAL','Ailier',23,['wing','read','trans'],'Lecture & transition','QI basket exceptionnel : passes en transition, attaque du cercle, jeu de pivot haut.',
+    ['QI de jeu','Passes à distance','Longévité physique'],['Défense d\'équipe en perte de vitesse'],{PTS:'~24',REB:'~8',AST:'~8','3P%':'~36%'},
+    ['Passes au dos en transition','Poste bas avec fadeaway','Chase-down blocks'],
+    ['Observe tout le terrain avant de driver','Joue toujours une passe d\'avance'],'LeBron James highlights'),
+  P('luka','Luka Dončić','LAL','Meneur',77,['pg','shoot','read'],'Step-back & lecture','Créateur à la lecture exceptionnelle et au step-back signature.',
+    ['Step-back 3 pts','Pick & roll maîtrisé','Passes lobées'],['Condition physique','Défense'],{PTS:'~29',REB:'~8',AST:'~8','3P%':'~36%'},
+    ['Slow-pace pick & roll avec hésitation','Step-back long à l\'arrêt du défenseur','Post-up léger'],
+    ['Utilise ton corps comme bouclier avant de reculer','Travaille le step-back des deux directions'],'Luka Doncic highlights'),
+  P('jokic2','Chet Holmgren','OKC','Pivot',7,['c','def','shoot'],'Protection du cercle','Pivot longiligne : tir à 3 pts, contre, jeu sans ballon.',
+    ['Contres sans faute','Tir en pick & pop','Mobilité sur écrans'],['Gabarit face aux gros','Rebond'],{PTS:'~16',REB:'~8',BLK:'~2'},
+    ['Drop coverage et récupération','Pick & pop à 3 pts'],
+    ['Reste vertical au contre','Utilise ta longueur pour décaler tes appuis'],'Chet Holmgren highlights'),
+  P('jaylen','Jaylen Brown','BOS','Arrière',7,['wing','def','dribble'],'Défense & scoring physique','Ailier athlétique : forceur au scoring, défenseur de premier plan.',
+    ['Défense individuelle','Drive main gauche/droite','Tir mid-range'],['Passes sous pression'],{PTS:'~24',REB:'~6',AST:'~4',STL:'~1.2'},
+    ['Drive + finition à l\'arrière du panneau','Closeout défensif'],
+    ['Défends avec les hanches, pas les bras','Pousse l\'attaquant vers son mauvais côté'],'Jaylen Brown highlights'),
+  P('maxey','Tyrese Maxey','PHI','Meneur',0,['pg','trans','dribble'],'Vitesse & première pas','Meneur ultra rapide : vitesse de premier pas, pull-up, finitions.',
+    ['Vitesse de pied','Floater','Tir en transition'],['Défense sur gros ballons'],{PTS:'~26',REB:'~4',AST:'~6','3P%':'~37%'},
+    ['Pull-up en transition','Floater contre un grand'],
+    ['Cherche à faire passer le défenseur derrière toi dans l\'écran','Garde une main libre pour te protéger'],'Tyrese Maxey highlights'),
+  P('wing1','Dyson Daniels','ATL','Ailier',5,['def','wing'],'Interceptions & défense','Défenseur de passes, voleur de balle, intelligence de placement.',
+    ['Interceptions','Bras actifs','Défense sur le ballon'],['Tir extérieur'],{STL:'~3',REB:'~7',PTS:'~14'},
+    ['Anticipation des lignes de passe','Déflexions sans faute'],
+    ['Reste en position basse, bras en « Y »','Regarde le passeur, pas le receveur'],'Dyson Daniels defense highlights'),
+  P('haliburton','Tyrese Haliburton','IND','Meneur',0,['pg','read','trans'],'Passe & rythme','Passeur à haut rythme : transition, passes sans regard.',
+    ['Passes en transition','Rythme','Pas de ballons perdus'],['Régularité du tir'],{PTS:'~18',AST:'~10',STL:'~1.2'},
+    ['Passes en cross-court dans l\'open court','Hockey assists'],
+    ['Cours la tête levée pour lire les 4 joueurs','Passe avant que le défenseur n\'ait fini de se replacer'],'Tyrese Haliburton highlights'),
+  P('embiid','Joel Embiid','PHI','Pivot',21,['c','post','shoot'],'Jeu au poste','Pivot dominant au poste et sur la ligne des lancers francs.',
+    ['Poste bas','Fadeaway mid','Lancers francs'],['Disponibilité physique'],{PTS:'~28',REB:'~10',AST:'~4'},
+    ['Drop step puis jump hook','Fadeaway après faux départ'],
+    ['Reçois bas et large, ne te redresse pas','Utilise tes épaules pour ouvrir ton angle'],'Joel Embiid highlights'),
+  P('booker','Devin Booker','PHX','Arrière',1,['sh','wing','shoot'],'Mid-range & fadeaway','Scoreur complet : mid-range, fadeaway, pull-up.',
+    ['Mid-range','Fadeaway','Écrans'],['Défense'],{PTS:'~26',AST:'~7','3P%':'~37%'},
+    ['Pull-up mid depuis hesitation','Fadeaway baseline'],
+    ['Reçois pied haut, plie les genoux avant le tir','Apprends à tirer avec un défenseur dans le visage'],'Devin Booker highlights'),
+  P('brunson','Jalen Brunson','NYK','Meneur',11,['pg','post','dribble'],'Footwork & jeu au poste','Meneur au footwork subtil : jeu en poste et sur contact.',
+    ['Tir en retrait','Pas lourd en post','Clutch'],['Gabarit'],{PTS:'~28',AST:'~7','3P%':'~38%'},
+    ['Post-up contre plus petits','Shot fake & step-back'],
+    ['Utilise ton centre de gravité bas','Joue sur les épaules du défenseur'],'Jalen Brunson highlights'),
+  P('mobley','Evan Mobley','CLE','Ailier fort',4,['pf','def','trans'],'Polyvalence défensive','Ailier fort fluide : défense large, transition, jeu au haut de raquette.',
+    ['Défense multi-positions','Passes en haut de raquette','Course en transition'],['Tir à 3 pts'],{PTS:'~18',REB:'~9',BLK:'~1.5'},
+    ['Switch défensif et récupération','Rim-run en transition'],
+    ['Cours le terrain en premier','Garde les pieds actifs avant les bras'],'Evan Mobley highlights'),
+  P('adebayo','Bam Adebayo','MIA','Pivot',13,['c','def','read'],'Switch & hand-off','Pivot polyvalent : switch sur les extérieurs, DHO, passes.',
+    ['Switch sur les ailiers','Hand-off','Défense d\'équipe'],['Tir à 3 pts'],{PTS:'~18',REB:'~10',AST:'~4'},
+    ['Switch 1–5','Dribble hand-off'],
+    ['Reste plat sur tes appuis','Joue avec le corps, pas avec les mains'],'Bam Adebayo defense highlights')
+];
+
+/* Moves */
+const MOVES = [
+  {id:'crossover',name:'Crossover',lvl:'Débutant',ico:'shuffle',desc:'Changement de main devant soi, d\'un côté à l\'autre, pour déséquilibrer le défenseur.',use:['Défenseur qui anticipe ta main forte','Pour lancer un drive après un écran'],err:['Dribble trop haut','Regard baissé','Pas de changement de rythme'],players:['Kyrie Irving','Allen Iverson','Tim Hardaway'],drill:'2 × 20 crossovers bas, puis sur plots (S-curve) à vitesse variable',q:'crossover tutorial basketball'},
+  {id:'btl',name:'Between the legs',lvl:'Débutant',ico:'shuffle',desc:'Passage du ballon entre les jambes pour garder le corps entre le ballon et le défenseur.',use:['Sous la pression défensive','Pour protéger le ballon avant un drive'],err:['Ballon trop proche des pieds','Regarder le ballon'],players:['Kyrie Irving','Chris Paul'],drill:'3 × 30 s en marchant, puis en courant',q:'between the legs dribble tutorial'},
+  {id:'btb',name:'Behind the back',lvl:'Intermédiaire',ico:'shuffle',desc:'Passage du ballon derrière le dos pour changer de direction en gardant le défenseur à distance.',use:['Défenseur collé sur le côté','Changement de côté rapide'],err:['Ballon trop bas','Exécution trop tôt'],players:['Stephen Curry','Kyrie Irving'],drill:'2 × 20 aller-retours d\'une ligne à l\'autre',q:'behind the back dribble tutorial'},
+  {id:'hesi',name:'Hesitation',lvl:'Intermédiaire',ico:'zap',desc:'Ralentir ou stopper brièvement, puis repartir pour faire s\'arrêter le défenseur.',use:['Avant un drive vers la ligne de fond','Contre défenseur qui recule trop vite'],err:['Arrêt trop long','Pas de menace de tir'],players:['Shai Gilgeous-Alexander','Chris Paul'],drill:'Ligne de plots : hesitation à chaque plot, accélération à chaque sortie',q:'hesitation dribble tutorial'},
+  {id:'spin',name:'Spin move',lvl:'Avancé',ico:'rotate',desc:'Rotation sur pied pivot pour passer dans le dos du défenseur en protégeant le ballon.',use:['Défenseur collé sur ton drive','Contre une aide tardive'],err:['Pied de pivot qui bouge','Ballon sorti du corps'],players:['Giannis Antetokounmpo','Kyrie Irving'],drill:'3 × 10 spins de chaque côté près d\'un défenseur passif',q:'spin move basketball tutorial'},
+  {id:'stepback',name:'Step-back',lvl:'Avancé',ico:'arrow',desc:'Pas en arrière après un drive pour créer l\'espace nécessaire à un tir.',use:['Défenseur sur ta hanche','Pour obtenir une fenêtre de tir à 3 pts'],err:['Recul trop court','Épaules non carrées'],players:['James Harden','Luka Dončić','Stephen Curry'],drill:'5 × 8 step-backs depuis la ligne des lancers francs',q:'stepback jumpshot tutorial'},
+  {id:'euro',name:'Eurostep',lvl:'Intermédiaire',ico:'foot',desc:'Deux pas latéraux successifs en sens opposés pour contourner l\'aide défensive avant la finition.',use:['Aide défensive au cercle','Attaque en transition'],err:['Contact non protégé','Pas trop court'],players:['Giannis Antetokounmpo','Manu Ginóbili'],drill:'3 × 10 eurosteps depuis le milieu du terrain',q:'eurostep tutorial basketball'},
+  {id:'prohop',name:'Pro hop',lvl:'Intermédiaire',ico:'foot',desc:'Saut en avant avec un temps de gather pour arrêter l\'élan et finir avec les deux pieds au sol.',use:['Pour s\'arrêter dans la raquette','Éviter un charge'],err:['Saut trop long','Pas de protection du ballon'],players:['James Harden','Kevin Durant'],drill:'Pro hop + lay-up main faible, 3 × 10',q:'pro hop tutorial basketball'},
+  {id:'floater',name:'Floater',lvl:'Intermédiaire',ico:'arrow',desc:'Tir en cloche à une main depuis la raquette, par-dessus les grands.',use:['Pivot en drop coverage','Pas assez d\'espace pour finir au cercle'],err:['Trajectoire trop plate','Pas de délai de relâchement'],players:['Tony Parker','Tyrese Maxey','Kyrie Irving'],drill:'5 positions autour de la raquette, 10 tirs chacune',q:'floater tutorial basketball'},
+  {id:'teardrop',name:'Tear drop',lvl:'Avancé',ico:'arrow',desc:'Variante du floater, très haute, souvent après un dernier dribble.',use:['Contre un grand qui défend haut','Dans la raquette'],err:['Trop de force','Prendre le tir trop tôt'],players:['Tony Parker','Trae Young'],drill:'Tear drop depuis chaque côté, 2 × 15',q:'teardrop floater tutorial'},
+  {id:'fade',name:'Fadeaway',lvl:'Avancé',ico:'arrow',desc:'Tir en reculant pour créer de l\'espace avec un défenseur au contact.',use:['Poste moyen ou bas','Face à un défenseur grand'],err:['Équilibre perdu','Tir trop plat'],players:['Michael Jordan','Kobe Bryant','Kevin Durant'],drill:'3 × 10 fadeaways côté gauche et droit',q:'fadeaway jumper tutorial'},
+  {id:'dropstep',name:'Drop step',lvl:'Intermédiaire',ico:'foot',desc:'Pas de pivot vers la ligne de fond ou le milieu après réception au poste.',use:['Poste bas','Défenseur qui te colle dans le dos'],err:['Pied de pivot déplacé','Ballon exposé'],players:['Joel Embiid','Hakeem Olajuwon'],drill:'2 × 10 drop steps de chaque côté, contre un sac',q:'drop step post move tutorial'},
+  {id:'jab',name:'Jab step',lvl:'Débutant',ico:'foot',desc:'Pas court et rapide qui menace le défenseur pour qu\'il réagisse.',use:['Triple menace','Avant un tir ou un drive'],err:['Jab trop lent','Pas de menace crédible'],players:['Jayson Tatum','Kevin Durant'],drill:'Jab + tir, 3 × 10 par côté',q:'jab step tutorial basketball'},
+  {id:'pump',name:'Pump fake',lvl:'Débutant',ico:'zap',desc:'Fausse intention de tir pour faire sauter le défenseur et trouver l\'ouverture.',use:['Défenseur qui contest trop haut','Contre un closeout'],err:['Mouvement trop lent','Sauter soi-même'],players:['Jayson Tatum','Chris Paul'],drill:'Pump fake + drive, 3 × 10',q:'pump fake tutorial basketball'},
+  {id:'rip',name:'Rip-through',lvl:'Débutant',ico:'rotate',desc:'Ramener le ballon à travers les bras du défenseur en position de triple menace pour s\'ouvrir une passe ou un drive.',use:['Défenseur qui plonge les bras','Réception en triple menace'],err:['Ballon haut','Rip trop lent'],players:['Kevin Durant','Jayson Tatum'],drill:'Rip + drive, 3 × 10 par côté',q:'rip through triple threat tutorial'}
+];
+const DRILLS = {
+  dribble:{ico:'shuffle',name:'Dribble',items:['Ballhandling stationnaire : 5 min (pounding, crossover, between the legs)','Ligne de plots : 4 × 2 passages avec changements de rythme','Dribble sous pression : 3 × 30 s avec un partenaire','Dribble à deux balles : 2 × 1 min']},
+  shoot:{ico:'arrow',name:'Tir',items:['Form shooting près du panier : 50 tirs','Catch & shoot : 5 positions × 10','Pull-up en mouvement : 4 × 8','Lancers francs : 50, suite de 10 avec routine']},
+  finish:{ico:'foot',name:'Finition',items:['Mikan drill : 2 × 30 s','Lay-ups main faible : 3 × 10','Euro step + finition : 3 × 8','Floater : 4 positions × 8']},
+  def:{ico:'zap',name:'Défense',items:['Position basse, glissements : 4 × 20 s','Closeout et contest : 3 × 8','Déflexions de passes : 3 × 30 s','Contrôle de l\'écran (hedge & recover) : 3 × 8']},
+  fit:{ico:'rotate',name:'Condition physique',items:['Sprints courts 10 × 20 m','Corde à sauter 3 × 2 min','Squats / fentes : 3 × 12','Gainage 3 × 45 s']}
+};
+/* Tactique — schéma: o=attaquants [x,y,label], x=défenseurs, a=flèches [x1,y1,x2,y2,type] type: m(mouvement) p(passe) s(écran) */
+const TACTICS = [
+  {id:'pnr',name:'Pick & roll',cat:'Attaque',def:'Un joueur pose un écran pour le porteur de balle, puis roule ou s\'écarte vers le panier ou la ligne à 3 pts. Base de l\'attaque NBA.',teams:['Dallas (Dončić)','Denver (Jokić)','Utah (Markkanen)'],q:'pick and roll explained',
+   d:{o:[[100,100,'1'],[78,78,'5'],[40,60,'2'],[160,60,'3']],x:[[100,88,'x'],[78,66,'x'],[40,48,'x'],[160,48,'x']],a:[[100,100,100,70,'m'],[78,78,92,52,'m'],[78,78,100,60,'s']]}},
+  {id:'iso',name:'Isolation',cat:'Attaque',def:'Un joueur attaque seul son défenseur pendant que le reste de l\'équipe élargit le terrain.',teams:['Oklahoma City (SGA)','Phoenix (Booker)'],q:'isolation basketball explained',
+   d:{o:[[100,95,'1'],[20,40,'2'],[180,40,'3'],[20,130,'4'],[180,130,'5']],x:[[100,80,'x'],[20,28,'x'],[180,28,'x'],[20,118,'x'],[180,118,'x']],a:[[100,95,150,60,'m']]}},
+  {id:'motion',name:'Motion offense',cat:'Attaque',def:'Système fluide : passes, coupes et écrans permanents pour créer l\'ouverture sans jeu fixe.',teams:['Golden State','San Antonio'],q:'motion offense explained',
+   d:{o:[[100,100,'1'],[30,70,'2'],[170,70,'3'],[60,40,'4'],[140,40,'5']],x:[[100,88,'x'],[30,58,'x'],[170,58,'x'],[60,28,'x'],[140,28,'x']],a:[[100,100,60,40,'p'],[30,70,100,50,'m'],[170,70,140,30,'m']]}},
+  {id:'zone',name:'Zone defense',cat:'Défense',def:'Chaque défenseur couvre une zone plutôt qu\'un joueur. Protège la raquette, donne du tir à 3 pts.',teams:['Miami (2-3)','Boston (occasionnel)'],q:'2-3 zone defense explained',
+   d:{o:[[100,115,'1'],[40,85,'2'],[160,85,'3'],[60,45,'4'],[140,45,'5']],x:[[70,70,'x'],[130,70,'x'],[40,40,'x'],[100,40,'x'],[160,40,'x']],a:[]}},
+  {id:'switch',name:'Switch',cat:'Défense',def:'Les défenseurs changent d\'adversaire sur un écran pour éviter de se faire déborder.',teams:['Miami','Boston'],q:'switching defense explained',
+   d:{o:[[100,100,'1'],[80,78,'5'],[40,60,'2'],[160,60,'3']],x:[[100,88,'x'],[80,66,'x'],[40,48,'x'],[160,48,'x']],a:[[100,88,80,66,'m'],[80,66,100,88,'m']]}},
+  {id:'drop',name:'Drop coverage',cat:'Défense',def:'Le pivot recule vers le cercle sur pick & roll pour protéger la raquette et laisser le tir mid-range au porteur.',teams:['Milwaukee','Denver','Spurs (Wembanyama)'],q:'drop coverage pick and roll explained',
+   d:{o:[[100,100,'1'],[78,78,'5']],x:[[100,88,'x'],[78,56,'x']],a:[[78,66,78,40,'m']]}},
+  {id:'ice',name:'Ice (Down)',cat:'Défense',def:'Défense qui force le porteur à aller vers la ligne de touche au lieu de l\'axe, pour éviter un pick & roll central.',teams:['Boston','Cleveland'],q:'ice pick and roll defense explained',
+   d:{o:[[100,100,'1'],[78,78,'5']],x:[[100,88,'x'],[78,66,'x']],a:[[100,100,160,70,'m']]}},
+  {id:'blitz',name:'Blitz / Trap',cat:'Défense',def:'Deux défenseurs piègent le porteur sur l\'écran pour forcer une passe loin de lui.',teams:['Golden State','Miami'],q:'blitz trap pick and roll explained',
+   d:{o:[[100,100,'1'],[78,78,'5'],[160,60,'2']],x:[[100,88,'x'],[78,66,'x'],[160,48,'x']],a:[[78,66,95,92,'m']]}},
+  {id:'trans',name:'Transition offense',cat:'Attaque',def:'Attaque rapide après un rebond ou une perte de balle, avant que la défense soit en place.',teams:['Indiana','Minnesota','OKC'],q:'transition offense explained',
+   d:{o:[[100,120,'1'],[40,100,'2'],[160,100,'3'],[70,70,'4'],[130,70,'5']],x:[[100,40,'x'],[60,50,'x']],a:[[100,120,100,40,'m'],[40,100,40,30,'m'],[160,100,160,30,'m']]}}
+];
+
+/* ---------- 3. ÉTAT ---------- */
+const store = {
+  get(k,d){ try{ const v=localStorage.getItem('nbahub.'+k); return v?JSON.parse(v):d }catch(e){ return d } },
+  set(k,v){ try{ localStorage.setItem('nbahub.'+k,JSON.stringify(v)) }catch(e){} }
+};
+const mem = {follow:store.get('follow',[]),watch:store.get('watch',[]),notes:store.get('notes',{}),remind:store.get('remind',[])};
+const save = () => { ['follow','watch','notes','remind'].forEach(k=>store.set(k,mem[k])) };
+
+const S = {view:'home',arg:null,date:todayISO(),conf:'all',status:'all',team:'all',onlyFollow:false,cat:'all',lvl:'all',tCat:'all',wTab:'all',pq:''};
+
+/* ---------- utilitaires ---------- */
+const $ = s=>document.querySelector(s);
+const esc = s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function parisParts(d){ const f=new Intl.DateTimeFormat('fr-FR',{timeZone:CONFIG.TZ,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(d); const o={}; f.forEach(p=>o[p.type]=p.value); return o }
+function todayISO(){ const p=parisParts(new Date()); return `${p.year}-${p.month}-${p.day}` }
+function addDays(iso,n){ const d=new Date(iso+'T12:00:00Z'); d.setUTCDate(d.getUTCDate()+n); return d.toISOString().slice(0,10) }
+function fmtDate(iso,o){ return new Date(iso+'T12:00:00Z').toLocaleDateString('fr-FR',Object.assign({timeZone:'UTC'},o)) }
+function hash(s){ let h=2166136261; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619) } return h>>>0 }
+/* heure Paris -> instant UTC */
+function parisToUTC(iso,hhmm){ const [h,m]=hhmm.split(':').map(Number); const guess=new Date(`${iso}T${hhmm}:00Z`); const p=parisParts(guess); const asParis=Date.UTC(+p.year,+p.month-1,+p.day,+p.hour%24,+p.minute); const diff=asParis-guess.getTime(); return new Date(guess.getTime()-diff) }
+function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add('on'); clearTimeout(toast.t); toast.t=setTimeout(()=>t.classList.remove('on'),2200) }
+
+/* ---------- icônes ---------- */
+const IC = {
+  logo:'<circle cx="12" cy="12" r="9"/><path d="M5 6c3 2 5 5 5 9M19 6c-3 2-5 5-5 9M3 12h18M12 3v18"/>',
+  search:'<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>',
+  bell:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/>',
+  home:'<path d="m3 11 9-8 9 8v9a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/>',
+  cal:'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+  trophy:'<path d="M6 9H4a2 2 0 0 1-2-2V5h4M18 9h2a2 2 0 0 0 2-2V5h-4M12 17v4M8 21h8M6 3h12v7a6 6 0 0 1-12 0z"/>',
+  play:'<circle cx="12" cy="12" r="10"/><path d="m10 8 6 4-6 4z"/>',
+  users:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>',
+  zap:'<path d="M4 14 14 2l-2 8h8L10 22l2-8z"/>',
+  way:'<circle cx="12" cy="4" r="2"/><circle cx="4" cy="19" r="2"/><circle cx="20" cy="19" r="2"/><path d="M12 6v6M6 17l5-5M18 17l-5-5"/>',
+  bm:'<path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>',
+  radio:'<circle cx="12" cy="12" r="2"/><path d="M4.9 19.1a10 10 0 0 1 0-14.2M7.8 16.2a6 6 0 0 1 0-8.4M16.2 7.8a6 6 0 0 1 0 8.4M19.1 4.9a10 10 0 0 1 0 14.2"/>',
+  info:'<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>',
+  p:'<path d="M5 3l14 9-14 9z"/>',
+  shuffle:'<path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/>',
+  arrow:'<path d="M7 17 17 7M7 7h10v10"/>',
+  foot:'<path d="M4 16v-2.4C4 11 5.6 10 7 10c1.9 0 3 1.2 3 3.5 0 1.1 0 3-1 4.5H5.5A1.5 1.5 0 0 1 4 16z"/><path d="M20 20v-2.4c0-2.6-1.6-3.6-3-3.6-1.9 0-3 1.2-3 3.5 0 1.1 0 3 1 4.5h3.5a1.5 1.5 0 0 0 1.5-1.5"/>',
+  rotate:'<path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 3v5h-5"/>',
+  ext:'<path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
+  back:'<path d="m15 18-6-6 6-6"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  star:'<path d="m12 2 3 7 7 .6-5.3 4.7L18.2 22 12 18.3 5.8 22l1.5-7.7L2 9.6 9 9z"/>',
+  dl:'<path d="M12 3v12m0 0-4-4m4 4 4-4M4 21h16"/>',
+  x:'<path d="M18 6 6 18M6 6l12 12"/>',
+  bkc:'<path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/><path d="m9 10 2 2 4-4"/>'
+};
+const ic = (n,cls='') => `<svg class="i ${cls}" viewBox="0 0 24 24">${IC[n]||''}</svg>`;
+
+/* ---------- données dérivées ---------- */
+function gamesOn(iso){
+  return GAMES.filter(g=>g.date===iso).map(g=>{
+    const id=g.id||`${g.date}-${g.away}-${g.home}`;
+    const start=parisToUTC(addDays(g.date,1),g.hour);
+    const home=TM[g.home], away=TM[g.away];
+    const conf=home.conf===away.conf?(home.conf==='E'?'Est':'Ouest'):'Inter-conf.';
+    return {...g,id,start:start.getTime(),fh:g.homeScore??null,fa:g.awayScore??null,conf,seed:hash(id),wb:[]};
+  }).sort((a,b)=>a.start-b.start);
+}
+/* Statut renseigné localement : aucun score live n'est extrapolé. */
+function status(g,now=Date.now()){
+  if(g.status==='final'||g.status==='fin') return {k:'fin',lbl:'TERMINÉ',sh:g.fh,sa:g.fa};
+  if(g.status==='live') return {k:'live',lbl:'● EN DIRECT',clock:g.clock||'',sh:g.fh,sa:g.fa};
+  return {k:'up',lbl:now<g.start?'À VENIR':'À ACTUALISER'};
+}
+function allGames(from=-3,to=7){ const t=todayISO(); const out=[]; for(let i=from;i<=to;i++) out.push(...gamesOn(addDays(t,i))); return out }
+function findGame(id){ return allGames(-10,10).find(g=>g.id===id) }
+function box(g){ return g.boxScore||{h:[],a:[]} }
+const sc = (g)=>{ const s=status(g); return s };
+function tlogo(ab,sm){ const t=TM[ab]; return `<div class="logoT ${sm?'sm':''}" style="background:${t.color}">${ab}</div>` }
+
+/* ---------- rendu ---------- */
+const NAV=[['home','Accueil','home'],['planning','Planning','cal'],['matches','Matchs','trophy'],['highlights','Highlights','play'],['players','Joueurs','users'],['moves','Moves','zap'],['tactics','Tactique','way'],['watch','Favoris','bm']];
+function chrome(){
+  $('#lg').innerHTML=ic('logo');
+  $('#si').innerHTML=ic('search'); $('#si2').innerHTML=ic('search'); $('#bell').innerHTML=ic('bell');
+  const count = mem.watch.length+mem.follow.length;
+  $('#side').innerHTML = NAV.map(([k,l,i])=>`<button class="nav ${S.view===k?'on':''}" data-go="${k}">${ic(i)}<span>${l}</span>${k==='watch'&&count?`<small>${count}</small>`:''}</button>`).join('')
+   + `<div class="lab"><span class="badge acc2" style="align-self:flex-start">LE LAB</span><h4>Regarde. Comprends. Progresse.</h4><p>Un nouveau décryptage chaque semaine.</p><a data-go="tactics">Explorer les analyses →</a></div><div class="tiny">NBA HUB / LE JEU, EN PROFONDEUR</div>`;
+  $('#bnav').innerHTML = NAV.map(([k,l,i])=>`<button class="${S.view===k?'on':''}" data-go="${k}">${ic(i)}<span>${l}</span></button>`).join('');
+}
+function render(){
+  chrome();
+  const v=S.view; let h='';
+  if(v==='home') h=vHome(); else if(v==='planning') h=vPlanning(); else if(v==='matches') h=vMatches(); else if(v==='match') h=vMatch(S.arg);
+  else if(v==='highlights') h=vHighlights(); else if(v==='players') h=vPlayers(); else if(v==='player') h=vPlayer(S.arg);
+  else if(v==='moves') h=vMoves(); else if(v==='tactics') h=vTactics(); else if(v==='watch') h=vWatch();
+  $('#app').innerHTML = h + `<div class="footer"><span>NBA Hub · Le jeu, en profondeur.</span><span>Édition française · Projet indépendant · Données locales, sans API</span></div>`;
+  window.scrollTo({top:0});
+}
+function go(v,arg){ S.view=v; S.arg=arg||null; history.replaceState(null,'','#'+v+(arg?'/'+arg:'')); render() }
+
+const demoNote = `<div class="note">${ic('info')}<span></span>Mode hors ligne : les matchs, scores et classements ne sont affichés que lorsqu'ils sont ajoutés aux données locales. Aucun score fictif.</div>`;
+const isFollow=(ab)=>mem.follow.includes(ab);
+
+function mcard(g,compact){
+  const s=status(g); const live=s.k==='live';
+  const f = isFollow(g.home)||isFollow(g.away);
+  return `<div class="card click ${live?'hot':''}" data-go="match" data-arg="${g.id}">
+    <div class="mrow"><span class="badge ${live?'live':''}">${s.lbl}</span><span class="tiny">${g.hour}${f?' · ★':''}</span></div>
+    ${[g.away,g.home].map(ab=>{ const score=ab===g.home?s.sh:s.sa; return `<div class="mrow"><div class="tm">${tlogo(ab)}<b style="color:${TM[ab].color};font-size:12px">${ab}</b></div><span class="score">${score??'—'}</span></div>` }).join('')}
+    <div class="tiny dim">${s.k==='live'?s.clock:s.k==='fin'?'Score final':g.hour+' · heure de Paris'}</div>
+  </div>`;
+}
+function vcard(v){
+  const on = mem.watch.some(w=>w.type==='video'&&w.id===v.id);
+  return `<div class="vid"><a class="thumb" href="${v.url}" target="_blank" rel="noopener" style="background:linear-gradient(135deg,${v.hue}55,#0a0b0e 80%)">
+    <div class="t"><span class="badge">${esc(v.tag==='top'?'TOP 10':v.tag==='game'?'RÉSUMÉ':'JOUEUR')}</span></div>
+    <div class="b"><span class="play">${ic('p')}</span><span class="badge">${v.len}</span></div></a>
+    <div class="vinfo"><div><b>${esc(v.title)}</b><span class="dim sm">${esc(v.sub)}</span></div>
+    <button class="bm ${on?'on':''}" data-act="wv" data-id="${v.id}" aria-label="Enregistrer">${ic('bm')}</button></div></div>`;
+}
+function pcard(p){
+  const on = mem.watch.some(w=>w.type==='player'&&w.id===p.id);
+  const c=TM[p.team].color;
+  return `<div class="pcard" data-go="player" data-arg="${p.id}">
+    <div class="ph" style="background:linear-gradient(160deg,${c}66,#0a0b0e 85%)"><span class="num">${p.num}</span><span></span>
+    <button class="bm ${on?'on':''}" data-act="wp" data-id="${p.id}" style="color:#fff" aria-label="Favori">${ic('bm')}</button></div>
+    <div><div class="tag">${esc(p.focus)}</div><h3>${esc(p.name)}</h3><span class="dim sm">${TM[p.team].name} · ${p.pos} · #${p.num}</span></div></div>`;
+}
+function mvCard(m){ return `<div class="card click" data-go="moves" data-arg="${m.id}" style="flex-direction:row;align-items:center;gap:14px;padding:16px;border-radius:10px"><span style="color:var(--accent)">${ic(m.ico)}</span><div><b style="font-size:13px">${esc(m.name)}</b><div class="tiny dim">${m.lvl}</div></div></div>` }
+
+function vHome(){
+  const t=todayISO(); const gs=gamesOn(t); const feat=gs[0]||null; const fs=feat?status(feat):null;
+  return `<div class="sec"><div class="eyebrow">Le jeu, en profondeur</div><h1>Toute la NBA. Votre terrain.</h1><p class="sub">Suivez les matchs. Décryptez les meilleurs. Faites évoluer votre jeu.</p></div>
+  <div class="hero"><span class="vs">${feat?`${feat.away} ${feat.home}`:'NBA'}</span><div>
+    ${feat?`<div class="row"><span class="badge ${fs.k==='live'?'live':''}">${fs.lbl}</span><span class="badge">${TM[feat.away].name.split(' ').pop().toUpperCase()} @ ${TM[feat.home].name.split(' ').pop().toUpperCase()}</span></div>
+    <h1>La rivalité ne prend jamais de repos.</h1>
+    <p class="sm" style="color:var(--soft);font-size:13px">${feat.hour} (heure de Paris) · ${esc(feat.stake||'Match de saison régulière')}</p>
+    <div class="row"><button class="btn p" data-go="match" data-arg="${feat.id}">${ic('radio')}Fiche du match</button>
+    <button class="btn" data-act="wm" data-id="${feat.id}">${ic('bm')}Enregistrer</button></div>`:`<div class="row"><span class="badge">100 % gratuit</span><span class="badge">Fonctionne hors ligne</span></div>
+    <h1>Ta NBA, sans abonnement.</h1><p class="sm" style="color:var(--soft);font-size:13px">Le planning local sera affiché ici quand les données vérifiées seront ajoutées. Les guides, fiches et favoris restent disponibles hors ligne.</p>
+    <div class="row"><button class="btn p" data-go="planning">${ic('cal')}Ouvrir le planning</button><button class="btn" data-go="highlights">${ic('play')}Contenu gratuit</button></div>`}</div></div>
+  <div class="sec"><div><div class="eyebrow">${fmtDate(t,{weekday:'long',day:'numeric',month:'long'})}</div><div class="sec-h"><h2>Matchs du jour</h2><a data-go="planning">Planning →</a></div></div>
+    ${gs.length?`<div class="grid g4">${gs.slice(0,4).map(g=>mcard(g)).join('')}</div>`:`<div class="empty">Aucun match local n'a été ajouté pour cette date. Consulte les sources gratuites ou complète le tableau GAMES en haut du script.</div>`}${demoNote}</div>
+  <div class="sec"><div class="sec-h"><h2>Highlights du jour</h2><a data-go="highlights">Tout voir →</a></div><div class="grid g3" style="gap:22px">${VIDEOS.slice(0,3).map(vcard).join('')}</div></div>
+  <div class="sec"><div><div class="eyebrow">Observez les détails qui font la différence</div><div class="sec-h"><h2>Joueurs à study</h2><a data-go="players">La bibliothèque →</a></div></div>
+    <div class="grid g4" style="gap:16px">${['curry','kyrie','wemby','tatum'].map(id=>pcard(PLAYERS.find(p=>p.id===id))).join('')}</div></div>
+  <div class="sec"><div class="sec-h"><h2>Moves à travailler</h2><a data-go="moves">Le labo →</a></div><div class="grid g5">${['crossover','stepback','euro','floater','spin'].map(id=>mvCard(MOVES.find(m=>m.id===id))).join('')}</div></div>`;
+}
+
+function filteredGames(){
+  let g = gamesOn(S.date);
+  if(S.conf!=='all') g=g.filter(x=>TM[x.home].conf===S.conf||TM[x.away].conf===S.conf);
+  if(S.team!=='all') g=g.filter(x=>x.home===S.team||x.away===S.team);
+  if(S.onlyFollow) g=g.filter(x=>isFollow(x.home)||isFollow(x.away));
+  if(S.status!=='all') g=g.filter(x=>status(x).k===S.status);
+  return g;
+}
+function filters(){
+  return `<div class="chips">
+    ${[['all','Toutes'],['E','Est'],['O','Ouest']].map(([k,l])=>`<button class="chip ${S.conf===k?'on':''}" data-set="conf" data-v="${k}">${l}</button>`).join('')}
+    ${[['all','Tous statuts'],['live','En cours'],['fin','Terminés'],['up','À venir']].map(([k,l])=>`<button class="chip ${S.status===k?'on':''}" data-set="status" data-v="${k}">${l}</button>`).join('')}
+    <button class="chip ${S.onlyFollow?'on':''}" data-act="onlyf">★ Mes équipes</button>
+    <select class="chip" data-sel="team"><option value="all">Toutes les équipes</option>${TEAMS.map(t=>`<option value="${t.abbr}" ${S.team===t.abbr?'selected':''}>${t.name}</option>`).join('')}</select></div>`;
+}
+function dayStrip(){
+  const t=todayISO(); const days=[]; for(let i=-3;i<=10;i++) days.push(addDays(t,i));
+  return `<div class="tabs">${days.map(d=>`<button class="day ${d===S.date?'on':''}" data-date="${d}">${fmtDate(d,{weekday:'short'}).toUpperCase().replace('.','')}<b>${d.slice(8)}</b>${d===t?'AUJ.':fmtDate(d,{month:'short'}).replace('.','')}</button>`).join('')}</div>
+  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><input type="date" class="inp" style="width:auto" data-date-in value="${S.date}"><button class="btn s" data-date="${t}">Aujourd'hui</button></div>`;
+}
+function gameRow(g){
+  const s=status(g); const live=s.k==='live'; const rem=mem.remind.includes(g.id);
+  return `<div class="card ${live?'hot':''}" style="flex-direction:row;align-items:center;gap:14px;flex-wrap:wrap">
+    <div style="width:70px"><b style="font-size:18px">${g.hour}</b><div class="tiny">Paris</div></div>
+    <div style="flex:1;min-width:220px;display:flex;flex-direction:column;gap:8px;cursor:pointer" data-go="match" data-arg="${g.id}">
+      ${[g.away,g.home].map(ab=>{const score=ab===g.home?s.sh:s.sa;return `<div class="mrow"><div class="tm">${tlogo(ab,1)}<b style="color:${TM[ab].color}">${TM[ab].name}</b>${isFollow(ab)?'<span style="color:var(--accent)">★</span>':''}</div><span class="score" style="font-size:18px">${score??'—'}</span></div>`}).join('')}
+    </div>
+    <div style="flex:1;min-width:180px;display:flex;flex-direction:column;gap:6px"><div class="chips"><span class="badge ${live?'live':''}">${s.lbl}${s.clock?' · '+s.clock:''}</span><span class="badge">${g.conf}</span></div>
+      <span class="sm" style="color:var(--soft)">${esc(g.stake||'Match de saison régulière')}</span><span class="tiny">Horaires en heure de Paris · données locales</span></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn s" data-act="ics" data-id="${g.id}">${ic('cal')}Calendrier</button><button class="btn s" data-act="rem" data-id="${g.id}">${ic('bell')}${rem?'Rappel actif':'Rappel'}</button></div></div>`;
+}
+function vPlanning(){
+  const g=filteredGames();
+  return `<div class="sec"><div class="eyebrow">Calendrier</div><h1>Planning NBA</h1><p class="sub">Matchs du jour, de la semaine ou d'une date précise — heures converties en heure française (CET/CEST).</p></div>
+  <div class="sec">${dayStrip()}${filters()}</div>
+  <div class="sec"><div class="sec-h"><h2>${fmtDate(S.date,{weekday:'long',day:'numeric',month:'long'})}</h2><span class="tiny">${g.length} match${g.length>1?'s':''}</span></div>
+  ${g.length?g.map(gameRow).join(''):'<div class="empty">Aucun match ne correspond aux filtres.</div>'}${demoNote}</div>`;
+}
+function vMatches(){
+  const g=filteredGames();
+  return `<div class="sec"><div class="eyebrow">Scores & récaps</div><h1>Matchs</h1><p class="sub">Scores, résumés et box scores vérifiés ajoutés aux données locales; aucune statistique fictive.</p></div>
+  <div class="sec">${dayStrip()}${filters()}</div>
+  <div class="sec"><div class="grid g3">${g.length?g.map(x=>mcard(x)).join(''):'<div class="empty" style="grid-column:1/-1">Aucun match.</div>'}</div>${demoNote}</div>`;
+}
+function vMatch(id){
+  const g=findGame(id); if(!g) return `<div class="empty">Match introuvable.</div>`;
+  const s=status(g); const b=box(g); const h=TM[g.home],a=TM[g.away];
+  const final = s.k==='fin'; const sh=s.sh, sa=s.sa;
+  const hasScore=Number.isFinite(sh)&&Number.isFinite(sa);
+  const win=final&&hasScore?(sh>=sa?g.home:g.away):null; const wt=win&&TM[win].name.split(' ').pop();
+  const topAll=[...b.h.map(x=>({...x,t:g.home})),...b.a.map(x=>({...x,t:g.away}))].sort((x,y)=>y.pts-x.pts);
+  const summary=hasScore
+    ? `${s.k==='live'?'Match en cours':'Score final'} : ${h.name} ${sh} – ${sa} ${a.name}.${topAll[0]?` Meilleur total renseigné : ${topAll[0].n}, ${topAll[0].pts} points.`:''} ${g.stake?esc(g.stake):''}`
+    : `Résumé et score non renseignés dans les données locales. Le match est listé à ${g.hour} (heure de Paris).`;
+  const key = g.keyMoments||[];
+  const wOn=mem.watch.some(w=>w.type==='match'&&w.id===g.id);
+  const q = `${a.name} vs ${h.name} highlights`;
+  return `<span class="crumb" data-go="matches">${ic('back')}Retour aux matchs</span>
+  <div class="card ${s.k==='live'?'hot':''}"><div class="mrow"><div class="chips"><span class="badge ${s.k==='live'?'live':''}">${s.lbl}${s.clock?' · '+s.clock:''}</span><span class="badge">${g.conf}</span><span class="badge">${fmtDate(g.date,{day:'numeric',month:'short'})} · ${g.hour} Paris</span></div>
+    <button class="bm ${wOn?'on':''}" data-act="wm" data-id="${g.id}">${ic('bm')}</button></div>
+    <div class="mrow" style="padding:12px 0">${[g.away,g.home].map((ab,i)=>`<div style="display:flex;flex-direction:column;align-items:center;gap:8px;flex:1;text-align:center">${tlogo(ab)}<b>${TM[ab].name}</b><span style="font-size:42px;font-weight:800;line-height:1">${hasScore?(i?sh:sa):'—'}</span><button class="btn s" data-act="fol" data-id="${ab}">${isFollow(ab)?'★ Suivie':'☆ Suivre'}</button></div>`).join('<span class="dim" style="font-weight:700">VS</span>')}</div>
+    <div class="note" style="justify-content:center">${esc(g.stake||'Match de saison régulière')}</div></div>
+  <div class="card summary"><div class="eyebrow">Résumé en 30 secondes</div><p style="font-size:15px;color:var(--soft)">${summary}</p><span class="tiny">Construit uniquement à partir des informations locales renseignées.</span></div>
+  <div class="split"><div class="sec">
+    ${final&&hasScore?`<div class="card"><h3>Box score simplifié</h3>${b.h.length||b.a.length?`<div class="tw">${[['away',g.away,b.a],['home',g.home,b.h]].map(([_,ab,rows])=>`<table><tr><th>${TM[ab].name}</th><th>MIN</th><th>PTS</th><th>REB</th><th>AST</th><th>FG</th></tr>${rows.map(r=>`<tr><td>${esc(r.n)}</td><td>${r.m??'—'}</td><td><b>${r.pts??'—'}</b></td><td>${r.reb??'—'}</td><td>${r.ast??'—'}</td><td>${r.fg??'—'}</td></tr>`).join('')}</table>`).join('<div style="height:10px"></div>')}</div>`:'<div class="empty">Box score détaillé non ajouté.</div>'}</div>
+    ${topAll.length?`<div class="card"><h3>Top performers</h3><div class="grid g3">${topAll.slice(0,3).map(p=>`<div class="kv" style="grid-template-columns:1fr"><div>${tlogo(p.t,1)}<b>${p.pts}</b><span>${esc(p.n)}</span><span style="display:block">${p.reb??'—'} reb · ${p.ast??'—'} ast</span></div></div>`).join('')}</div></div>`:''}
+    ${key.length?`<div class="card"><h3>Moments clés</h3><div class="timeline">${key.map(k=>`<div><b>${esc(k[0])}</b><span>${esc(k[1])}</span></div>`).join('')}</div></div>`:''}`:`<div class="empty">Box score, top performers et moments clés apparaîtront quand les données vérifiées seront ajoutées.</div>`}
+  </div>
+  <div class="sec">
+    <div class="card"><h3>Contenu gratuit</h3><span class="tiny">Pas d'abonnement proposé. Le contenu externe nécessite une connexion Internet.</span>
+      ${[WATCH.youtube,WATCH.nbaapp,WATCH.teamYoutube,WATCH.fans,WATCH.podcasts,WATCH.reddit,WATCH.x,WATCH.radio].map(w=>`<div class="opt"><div><b>${w.name}</b><span class="sm dim">${w.note}</span></div><span class="badge ok">GRATUIT</span><a class="btn s" href="${w.url}" target="_blank" rel="noopener">${ic('ext')}</a></div>`).join('')}</div>
+    <div class="card"><h3>Highlights & résumés</h3>
+      <a class="opt" href="${yt(q)}" target="_blank" rel="noopener"><div><b>Highlights officiels</b><span class="sm dim">Recherche sur YouTube NBA</span></div>${ic('ext')}</a>
+      <a class="opt" href="https://www.nba.com/games" target="_blank" rel="noopener"><div><b>NBA App / nba.com</b><span class="sm dim">Résumés et box scores officiels</span></div>${ic('ext')}</a>
+      <a class="opt" href="${yt(h.name+' official highlights')}" target="_blank" rel="noopener"><div><b>${h.name}</b><span class="sm dim">Compte officiel de l'équipe</span></div>${ic('ext')}</a>
+      <a class="opt" href="${yt(a.name+' official highlights')}" target="_blank" rel="noopener"><div><b>${a.name}</b><span class="sm dim">Compte officiel de l'équipe</span></div>${ic('ext')}</a></div>
+    <div style="display:flex;gap:8px"><button class="btn" data-act="ics" data-id="${g.id}">${ic('cal')}Ajouter au calendrier</button><button class="btn" data-act="rem" data-id="${g.id}">${ic('bell')}Rappel</button></div>
+  </div></div>`;
+}
+function vHighlights(){
+  const day = VIDEOS.slice();
+  return `<div class="sec"><div class="eyebrow">Gratuit · Officiel</div><h1>Highlights NBA</h1><p class="sub">Les meilleures vidéos officielles du jour. Les liens ouvrent YouTube NBA ou les comptes officiels.</p></div>
+  <div class="sec"><div class="sec-h"><h2>Highlights gratuits du jour</h2><a href="https://www.youtube.com/@NBA" target="_blank" rel="noopener">Chaîne @NBA →</a></div><div class="grid g3" style="gap:22px">${day.map(vcard).join('')}</div></div>
+  <div class="sec"><h2>Contenu gratuit</h2><div class="grid g3">${[WATCH.youtube,WATCH.nbaapp,WATCH.teamYoutube,WATCH.fans,WATCH.podcasts,WATCH.reddit,WATCH.x,WATCH.radio].map(w=>`<div class="opt"><div><b>${w.name}</b><span class="sm dim">${w.note}</span></div><span class="badge ok">GRATUIT</span><a class="btn s" href="${w.url}" target="_blank" rel="noopener">${ic('ext')}</a></div>`).join('')}</div>
+  <div class="note">${ic('info')}<span></span>Les cartes sont des recherches YouTube préremplies; les vidéos s'ouvrent seulement lorsque tu les sélectionnes.</div></div>`;
+}
+function vPlayers(){
+  const q=S.pq.toLowerCase(); const list = PLAYERS.filter(p=>(S.cat==='all'||p.cats.includes(S.cat)) && (!q||(p.name+TM[p.team].name).toLowerCase().includes(q)));
+  return `<div class="sec"><div class="eyebrow">Observez les détails qui font la différence</div><h1>Joueurs à study</h1><p class="sub">Style, points forts, faiblesses, séquences à étudier et conseils pour reproduire leur jeu.</p></div>
+  <div class="sec"><div class="chips"><button class="chip ${S.cat==='all'?'on':''}" data-set="cat" data-v="all">Tous</button>${Object.entries(CATS).map(([k,l])=>`<button class="chip ${S.cat===k?'on':''}" data-set="cat" data-v="${k}">${l}</button>`).join('')}</div>
+  <input class="inp" data-pq placeholder="Filtrer par nom ou équipe…" value="${esc(S.pq)}" style="max-width:360px"></div>
+  <div class="grid g4" style="gap:16px">${list.length?list.map(pcard).join(''):'<div class="empty" style="grid-column:1/-1">Aucun joueur.</div>'}</div>
+  <div class="note">${ic('info')}<span></span>Base hors ligne en cours d'enrichissement. Les stats doivent porter une saison/source et ne sont pas des données en direct.</div>`;
+}
+function vPlayer(id){
+  const p=PLAYERS.find(x=>x.id===id); if(!p) return '<div class="empty">Joueur introuvable.</div>'; const t=TM[p.team];
+  const on=mem.watch.some(w=>w.type==='player'&&w.id===p.id); const note=mem.notes['player:'+p.id]||'';
+  return `<span class="crumb" data-go="players">${ic('back')}Retour aux joueurs</span>
+  <div class="card" style="background:linear-gradient(160deg,${t.color}44,var(--panel) 70%)"><div class="mrow"><div><div class="tag">${esc(p.focus)}</div><h1>${esc(p.name)}</h1><span class="dim">${t.name} · ${p.pos} · #${p.num}</span></div>
+    <div style="display:flex;gap:8px"><button class="btn" data-act="wp" data-id="${p.id}">${ic(on?'bkc':'bm')}${on?'Dans ma watchlist':'Watchlist'}</button><button class="btn" data-act="fol" data-id="${p.team}">${isFollow(p.team)?'★':'☆'} ${p.team}</button></div></div>
+    <p style="color:var(--soft)">${esc(p.style)}</p><div class="chips">${p.cats.map(c=>`<span class="badge acc2">${CATS[c]}</span>`).join('')}</div></div>
+  <div class="kv" style="grid-template-columns:repeat(auto-fit,minmax(90px,1fr))">${Object.entries(p.stats).map(([k,v])=>`<div><b>${v}</b><span>${k}</span></div>`).join('')}</div>
+  <div class="grid g2"><div class="card"><h3>Points forts</h3><ul class="l">${p.pros.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div><div class="card"><h3>Faiblesses</h3><ul class="l bad">${p.cons.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div></div>
+  <div class="grid g2"><div class="card"><h3>Séquences à étudier</h3><ul class="l">${p.study.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
+    <a class="btn" href="${NBA_YT(p.q)}" target="_blank" rel="noopener">${ic('play')}Highlights officiels</a></div>
+    <div class="card"><h3>Comment imiter son jeu</h3><ul class="l">${p.tips.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div></div>
+  <div class="card"><h3>Mes notes</h3><textarea data-note="player:${p.id}" placeholder="Ce que je veux retenir de ${esc(p.name)}…">${esc(note)}</textarea><span class="tiny">Sauvegardé automatiquement dans ce navigateur.</span></div>`;
+}
+function moveCard(m){
+  const on=mem.watch.some(w=>w.type==='move'&&w.id===m.id); const note=mem.notes['move:'+m.id]||'';
+  return `<div class="card" id="mv-${m.id}"><div class="mrow"><div class="tm"><span style="color:var(--accent)">${ic(m.ico)}</span><h3>${esc(m.name)}</h3></div><div style="display:flex;gap:8px;align-items:center"><span class="badge ${m.lvl==='Avancé'?'live':m.lvl==='Débutant'?'ok':'acc2'}">${m.lvl.toUpperCase()}</span><button class="bm ${on?'on':''}" data-act="wmv" data-id="${m.id}">${ic('bm')}</button></div></div>
+    <p style="color:var(--soft)">${esc(m.desc)}</p>
+    <div class="grid g2" style="gap:14px"><div><b class="sm">Quand l'utiliser</b><ul class="l" style="margin-top:6px">${m.use.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div><div><b class="sm">Erreurs fréquentes</b><ul class="l bad" style="margin-top:6px">${m.err.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div></div>
+    <div class="opt"><div><b>Drill associé</b><span class="sm dim">${esc(m.drill)}</span></div></div>
+    <div class="sm dim">Joueurs connus : ${m.players.map(esc).join(', ')}</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn s" href="${yt(m.q)}" target="_blank" rel="noopener">${ic('play')}Tutoriel vidéo</a><a class="btn s" href="${NBA_YT(m.players[0]+' '+m.name)}" target="_blank" rel="noopener">${ic('play')}Démo en match</a></div>
+    <textarea data-note="move:${m.id}" placeholder="Mes notes sur ce move…" style="min-height:52px">${esc(note)}</textarea></div>`;
+}
+function vMoves(){
+  const list=MOVES.filter(m=>S.lvl==='all'||m.lvl===S.lvl);
+  return `<div class="sec"><div class="eyebrow">Le labo</div><h1>Moves & techniques</h1><p class="sub">Explication, situations d'utilisation, erreurs fréquentes, vidéos et drills pour chaque move.</p></div>
+  <div class="chips">${['all','Débutant','Intermédiaire','Avancé'].map(l=>`<button class="chip ${S.lvl===l?'on':''}" data-set="lvl" data-v="${l}">${l==='all'?'Tous niveaux':l}</button>`).join('')}</div>
+  <div class="grid g2" style="align-items:start">${list.map(moveCard).join('')}</div>
+  <div class="sec"><div><div class="eyebrow">Progresser</div><h2>Programme d'entraînement</h2></div><div class="grid g3">${Object.values(DRILLS).map(d=>`<div class="card"><div class="tm"><span style="color:var(--accent)">${ic(d.ico)}</span><h3>${d.name}</h3></div><ul class="l">${d.items.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`).join('')}</div>
+  <div class="note">${ic('info')}<span></span>Base : 3 à 4 séances/semaine de 45–60 min ; alterne dribble/tir/finition, 1 séance condition physique.</div></div>`;
+}
+function court(d){
+  const arrows=(d.a||[]).map(([x1,y1,x2,y2,t])=>{ const dash=t==='p'?'stroke-dasharray="5 4"':''; const col=t==='p'?'#999fac':t==='s'?'#ffd0b8':'#ff7338'; return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width="2" ${dash} marker-end="url(#ar)"/>` }).join('');
+  const o=(d.o||[]).map(([x,y,l])=>`<circle cx="${x}" cy="${y}" r="8" fill="#ff7338"/><text x="${x}" y="${y+3.5}" text-anchor="middle" font-size="9" font-weight="700" fill="#0a0b0e">${l}</text>`).join('');
+  const x=(d.x||[]).map(([cx,cy])=>`<g stroke="#999fac" stroke-width="2"><path d="M${cx-5} ${cy-5}l10 10M${cx+5} ${cy-5}l-10 10"/></g>`).join('');
+  return `<svg class="court" viewBox="0 0 200 150"><defs><marker id="ar" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0 0l7 3.5L0 7z" fill="#ff7338"/></marker></defs>
+  <rect x="2" y="2" width="196" height="146" fill="none" stroke="#292d36" stroke-width="2"/><rect x="70" y="2" width="60" height="68" fill="none" stroke="#292d36" stroke-width="1.5"/>
+  <circle cx="100" cy="70" r="20" fill="none" stroke="#292d36" stroke-width="1.5"/><path d="M20 2V45a80 80 0 0 0 160 0V2" fill="none" stroke="#292d36" stroke-width="1.5" transform="translate(0 22)"/>
+  <circle cx="100" cy="14" r="4" fill="none" stroke="#ff7338"/>${arrows}${x}${o}</svg>`;
+}
+function vTactics(){
+  const list=TACTICS.filter(t=>S.tCat==='all'||t.cat===S.tCat);
+  return `<div class="sec"><div class="eyebrow">Le jeu, en profondeur</div><h1>Analyse tactique</h1><p class="sub">Les systèmes NBA expliqués simplement : définition, exemples, schéma et vidéos.</p></div>
+  <div class="chips">${['all','Attaque','Défense'].map(l=>`<button class="chip ${S.tCat===l?'on':''}" data-set="tCat" data-v="${l}">${l==='all'?'Tout':l}</button>`).join('')}</div>
+  <div class="grid g3" style="align-items:start">${list.map(t=>{ const on=mem.watch.some(w=>w.type==='tactic'&&w.id===t.id); return `<div class="card" id="t-${t.id}"><div class="mrow"><div><span class="badge ${t.cat==='Défense'?'':'acc2'}">${t.cat.toUpperCase()}</span><h3 style="margin-top:8px">${esc(t.name)}</h3></div><button class="bm ${on?'on':''}" data-act="wt" data-id="${t.id}">${ic('bm')}</button></div>
+    ${court(t.d)}<p style="color:var(--soft);font-size:13px">${esc(t.def)}</p><div class="sm dim">Exemples : ${t.teams.map(esc).join(' · ')}</div>
+    <a class="btn s" href="${NBA_YT(t.q)}" target="_blank" rel="noopener" style="align-self:flex-start">${ic('play')}À regarder</a></div>` }).join('')}</div>
+  <div class="note">${ic('info')}<span></span>Légende : ● attaquant · ✕ défenseur · flèche orange = déplacement · pointillé = passe.</div>`;
+}
+function vWatch(){
+  const types={all:'Tout',match:'Résumés',player:'Joueurs',move:'Moves',video:'Vidéos',tactic:'Tactiques',team:'Équipes'};
+  const items=[]; mem.watch.forEach(w=>items.push(w)); mem.follow.forEach(ab=>items.push({type:'team',id:ab}));
+  const list=items.filter(w=>S.wTab==='all'||w.type===S.wTab);
+  const row=w=>{ let t='',s='',go='';
+    if(w.type==='match'){ const g=findGame(w.id); t=g?`${TM[g.away].name} @ ${TM[g.home].name}`:w.id; s='Résumé · '+(g?fmtDate(g.date,{day:'numeric',month:'short'}):''); go=`data-go="match" data-arg="${w.id}"` }
+    if(w.type==='player'){ const p=PLAYERS.find(x=>x.id===w.id); t=p?p.name:w.id; s='Joueur à étudier'; go=`data-go="player" data-arg="${w.id}"` }
+    if(w.type==='move'){ const m=MOVES.find(x=>x.id===w.id); t=m?m.name:w.id; s='Move à revoir'; go=`data-go="moves"` }
+    if(w.type==='video'){ const v=VIDEOS.find(x=>x.id===w.id); t=v?v.title:w.id; s='Vidéo'; go='' }
+    if(w.type==='tactic'){ const x=TACTICS.find(y=>y.id===w.id); t=x?x.name:w.id; s='Concept tactique'; go=`data-go="tactics"` }
+    if(w.type==='team'){ t=TM[w.id].name; s='Équipe suivie'; go='' }
+    const nk=w.type+':'+w.id; const n=mem.notes[nk];
+    return `<div class="card"><div class="mrow"><div class="tm" ${go} style="cursor:pointer"><span style="color:var(--accent)">${ic(w.type==='team'?'star':'bm')}</span><div><b>${esc(t)}</b><div class="sm dim">${s}</div></div></div><button class="btn s" data-act="rmw" data-t="${w.type}" data-id="${w.id}">${ic('x')}Retirer</button></div>
+    ${w.type!=='team'?`<textarea data-note="${nk}" placeholder="Notes…" style="min-height:48px">${esc(n||'')}</textarea>`:''}</div>` };
+  return `<div class="sec"><div class="eyebrow">Suivi personnel</div><h1>Ma watchlist</h1><p class="sub">Équipes suivies, résumés, joueurs, moves et tactiques à revoir — avec tes notes. Tout est sauvegardé dans ce navigateur.</p></div>
+  <div class="chips">${Object.entries(types).map(([k,l])=>`<button class="chip ${S.wTab===k?'on':''}" data-set="wTab" data-v="${k}">${l}</button>`).join('')}</div>
+  <div class="grid g2" style="align-items:start">${list.length?list.map(row).join(''):'<div class="empty" style="grid-column:1/-1">Rien ici pour l\'instant. Utilise l\'icône signet sur un match, un joueur, un move ou une vidéo, et suis des équipes avec ☆.</div>'}</div>
+  <div class="sec"><h2>Suivre des équipes</h2><div class="chips">${TEAMS.map(t=>`<button class="chip ${isFollow(t.abbr)?'on':''}" data-act="fol" data-id="${t.abbr}">${t.abbr}</button>`).join('')}</div></div>`;
+}
+
+/* ---------- recherche globale ---------- */
+function searchIndex(){
+  const out=[];
+  TEAMS.forEach(t=>out.push({k:'Équipe',t:t.name,go:['planning',null],team:t.abbr}));
+  PLAYERS.forEach(p=>out.push({k:'Joueur',t:p.name+' · '+TM[p.team].abbr,go:['player',p.id]}));
+  MOVES.forEach(m=>out.push({k:'Move',t:m.name,go:['moves',m.id]}));
+  TACTICS.forEach(t=>out.push({k:'Tactique',t:t.name,go:['tactics',t.id]}));
+  allGames(-1,3).forEach(g=>out.push({k:'Match',t:`${TM[g.away].name} @ ${TM[g.home].name} · ${fmtDate(g.date,{day:'numeric',month:'short'})}`,go:['match',g.id]}));
+  return out;
+}
+let IDX=null, selI=0, RES=[];
+function openSearch(){ IDX=IDX||searchIndex(); $('#ov').classList.add('on'); $('#q').value=''; doSearch(''); setTimeout(()=>$('#q').focus(),30) }
+function closeSearch(){ $('#ov').classList.remove('on') }
+function doSearch(q){
+  q=q.toLowerCase().trim(); RES=(q?IDX.filter(x=>x.t.toLowerCase().includes(q)):IDX.filter(x=>x.k==='Joueur').slice(0,6)).slice(0,30); selI=0;
+  $('#res').innerHTML = RES.length?RES.map((r,i)=>`<button class="${i===0?'sel':''}" data-ri="${i}">${r.t}<small>${r.k}</small></button>`).join(''):'<div class="empty" style="border:0">Aucun résultat</div>';
+}
+function pick(i){ const r=RES[i]; if(!r) return; closeSearch(); if(r.team){ S.team=r.team; S.date=todayISO(); go('planning') } else go(r.go[0],r.go[1]) }
+
+/* ---------- calendrier (.ics) ---------- */
+function ics(g){
+  const f=d=>new Date(d).toISOString().replace(/[-:]/g,'').replace(/\.\d+/,'');
+  const body=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//NBA Hub//FR','BEGIN:VEVENT',`UID:${g.id}@nbahub`,`DTSTAMP:${f(Date.now())}`,`DTSTART:${f(g.start)}`,`DTEND:${f(g.start+2.5*3600e3)}`,`SUMMARY:NBA · ${TM[g.away].name} @ ${TM[g.home].name}`,`DESCRIPTION:${g.stake} — heure de Paris ${g.hour}`,'BEGIN:VALARM','TRIGGER:-PT15M','ACTION:DISPLAY','DESCRIPTION:Coup d\'envoi dans 15 min','END:VALARM','END:VEVENT','END:VCALENDAR'].join('\r\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([body],{type:'text/calendar'})); a.download=`nba-${g.id}.ics`; a.click(); toast('Événement .ics téléchargé');
+}
+function remind(g){
+  if(mem.remind.includes(g.id)){ mem.remind=mem.remind.filter(x=>x!==g.id); save(); toast('Rappel retiré'); render(); return }
+  mem.remind.push(g.id); save(); toast('Rappel activé (15 min avant, onglet ouvert)');
+  if('Notification' in window && Notification.permission==='default') try{ Notification.requestPermission() }catch(e){}
+  render();
+}
+setInterval(()=>{ const n=Date.now(); mem.remind.forEach(id=>{ const g=findGame(id); if(!g) return; const d=g.start-n; if(d>0&&d<15*60e3&&!remind.sent?.[id]){ remind.sent=remind.sent||{}; remind.sent[id]=1; toast(`Coup d'envoi bientôt : ${g.away} @ ${g.home}`); try{ if(Notification.permission==='granted') new Notification('NBA Hub',{body:`${g.away} @ ${g.home} à ${g.hour}`}) }catch(e){} } }) },30000);
+
+/* ---------- événements ---------- */
+const toggle=(arr,pred,item)=>{ const i=arr.findIndex(pred); if(i>=0) arr.splice(i,1); else arr.push(item); return i<0 };
+document.addEventListener('click',e=>{
+  const r=e.target.closest('[data-ri]'); if(r){ pick(+r.dataset.ri); return }
+  if(e.target===$('#ov')){ closeSearch(); return }
+  const a=e.target.closest('[data-act]');
+  if(a){ e.preventDefault(); e.stopPropagation(); const id=a.dataset.id, act=a.dataset.act;
+    if(act==='search') return openSearch();
+    if(act==='notif'){ toast(mem.remind.length?`${mem.remind.length} rappel(s) actif(s)`:'Aucun rappel : utilise « Rappel » sur un match'); return }
+    if(act==='fol'){ toggle(mem.follow,x=>x===id,id)?toast(TM[id].name+' suivie'):toast('Équipe retirée'); }
+    if(act==='wm'){ toggle(mem.watch,w=>w.type==='match'&&w.id===id,{type:'match',id})?toast('Ajouté à ma watchlist'):toast('Retiré'); }
+    if(act==='wp'){ toggle(mem.watch,w=>w.type==='player'&&w.id===id,{type:'player',id})?toast('Ajouté à ma watchlist'):toast('Retiré'); }
+    if(act==='wmv'){ toggle(mem.watch,w=>w.type==='move'&&w.id===id,{type:'move',id})?toast('Ajouté à ma watchlist'):toast('Retiré'); }
+    if(act==='wv'){ toggle(mem.watch,w=>w.type==='video'&&w.id===id,{type:'video',id})?toast('Vidéo enregistrée'):toast('Retirée'); }
+    if(act==='wt'){ toggle(mem.watch,w=>w.type==='tactic'&&w.id===id,{type:'tactic',id})?toast('Ajouté à ma watchlist'):toast('Retiré'); }
+    if(act==='rmw'){ const t=a.dataset.t; if(t==='team') mem.follow=mem.follow.filter(x=>x!==id); else mem.watch=mem.watch.filter(w=>!(w.type===t&&w.id===id)); }
+    if(act==='onlyf'){ S.onlyFollow=!S.onlyFollow }
+    if(act==='ics'){ const g=findGame(id); if(g) ics(g); return }
+    if(act==='rem'){ const g=findGame(id); if(g) remind(g); return }
+    save(); const y=window.scrollY; render(); window.scrollTo({top:y}); return }
+  const set=e.target.closest('[data-set]'); if(set){ S[set.dataset.set]=set.dataset.v; const y=window.scrollY; render(); window.scrollTo({top:y}); return }
+  const d=e.target.closest('[data-date]'); if(d){ S.date=d.dataset.date; const y=window.scrollY; render(); window.scrollTo({top:y}); return }
+  if(e.target.closest('a[href]')) return;
+  const g=e.target.closest('[data-go]'); if(g){ go(g.dataset.go,g.dataset.arg); if(g.dataset.go==='moves'&&g.dataset.arg) setTimeout(()=>document.getElementById('mv-'+g.dataset.arg)?.scrollIntoView({behavior:'smooth',block:'center'}),50) }
+});
+document.addEventListener('change',e=>{
+  if(e.target.matches('[data-sel=team]')){ S.team=e.target.value; render() }
+  if(e.target.matches('[data-date-in]')&&e.target.value){ S.date=e.target.value; render() }
+});
+document.addEventListener('input',e=>{
+  if(e.target.matches('[data-note]')){ const k=e.target.dataset.note; if(e.target.value) mem.notes[k]=e.target.value; else delete mem.notes[k]; save() }
+  if(e.target.id==='q') doSearch(e.target.value);
+  if(e.target.matches('[data-pq]')){ S.pq=e.target.value; const pos=e.target.selectionStart; render(); const el=document.querySelector('[data-pq]'); el.focus(); el.setSelectionRange(pos,pos) }
+});
+document.addEventListener('keydown',e=>{
+  if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){ e.preventDefault(); openSearch(); return }
+  if(e.key==='/' && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){ e.preventDefault(); openSearch(); return }
+  if($('#ov').classList.contains('on')){
+    if(e.key==='Escape') closeSearch();
+    if(e.key==='ArrowDown'||e.key==='ArrowUp'){ e.preventDefault(); selI=Math.max(0,Math.min(RES.length-1,selI+(e.key==='ArrowDown'?1:-1))); document.querySelectorAll('#res button').forEach((b,i)=>b.classList.toggle('sel',i===selI)); document.querySelectorAll('#res button')[selI]?.scrollIntoView({block:'nearest'}) }
+    if(e.key==='Enter') pick(selI);
+  }
+});
+/* démarrage + hash */
+(function(){ const h=location.hash.slice(1).split('/'); if(h[0]&&NAV.some(n=>n[0]===h[0])||['match','player'].includes(h[0])){ S.view=h[0]; S.arg=h[1]||null } render() })();
+setInterval(()=>{ if(['home','planning','matches','match'].includes(S.view) && !document.activeElement.matches('input,textarea,select')) { const y=window.scrollY; render(); window.scrollTo({top:y}) } },60000);
+</script>
+</body>
+</html>
